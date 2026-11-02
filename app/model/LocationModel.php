@@ -49,6 +49,84 @@ class LocationModel
 
 
     // ==========================================
+    // GET ACTIVE LOCATIONS
+    // Used by Reporter when submitting incident
+    // ==========================================
+    public function getActiveLocations()
+    {
+        $stmt = $this->conn->prepare("
+            SELECT
+                location_id,
+                location_name,
+                building_name,
+                floor_number,
+                qr_code_value
+            FROM locations
+            WHERE status = 'Active'
+            ORDER BY building_name, floor_number, location_name
+        ");
+
+        if (!$stmt) {
+            return [];
+        }
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        $locations = [];
+
+        while ($row = $result->fetch_assoc()) {
+            $locations[] = $row;
+        }
+
+        $stmt->close();
+
+        return $locations;
+    }
+
+
+    // ==========================================
+    // GET LOCATION BY QR CODE
+    // Used by Reporter QR scanner
+    // ==========================================
+    public function getLocationByQrCode($qrCodeValue)
+    {
+        $stmt = $this->conn->prepare("
+            SELECT
+                location_id,
+                location_name,
+                building_name,
+                floor_number,
+                qr_code_value
+            FROM locations
+            WHERE qr_code_value = ?
+              AND status = 'Active'
+            LIMIT 1
+        ");
+
+        if (!$stmt) {
+            return null;
+        }
+
+        $stmt->bind_param(
+            "s",
+            $qrCodeValue
+        );
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        $location = $result->fetch_assoc();
+
+        $stmt->close();
+
+        return $location ?: null;
+    }
+
+
+    // ==========================================
     // GET ONE LOCATION BY ID
     // ==========================================
     public function getLocationById($locationId)

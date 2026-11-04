@@ -8,7 +8,7 @@
             <h2>Manage Admin Accounts</h2>
 
             <p class="text-muted mb-0">
-                Create and manage administrator accounts.
+            <!--    Create and manage administrator accounts.-->
             </p>
         </div>
 

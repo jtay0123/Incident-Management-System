@@ -10,7 +10,7 @@
             throw new InvalidArgumentException("Password must be at least 8 characters long.");
         }
 
-        $hash = password_hash($password, PASSWORD_ARGON2I);
+        $hash = password_hash($password, PASSWORD_ARGON2ID);
 
         return $hash;
     }

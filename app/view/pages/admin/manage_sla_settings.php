@@ -11,7 +11,7 @@
         <h2>SLA Settings</h2>
 
         <p class="text-muted mb-0">
-            Manage SLA rules, working hours and public holidays.
+       <!--     Manage SLA rules, working hours and public holidays. -->
         </p>
 
     </div>
@@ -38,8 +38,8 @@
     <div class="card-body">
 
         <p class="text-muted mb-4">
-            Set the maximum time allowed to resolve incidents based
-            on their priority.
+       <!--     Set the maximum time allowed to resolve incidents based
+            on their priority. -->
         </p>
 
 
@@ -126,8 +126,8 @@
     <div class="card-body">
 
         <p class="text-muted mb-4">
-            Set the campus working days and working hours used
-            when calculating SLA deadlines.
+            <!--    Set the campus working days and working hours used
+            when calculating SLA deadlines. -->
         </p>
 
 
@@ -304,7 +304,7 @@
     </div>
 
 </div>
-```
+
 
 </div>
 
@@ -538,7 +538,6 @@
     </div>
 
 </div>
-```
 
 </div>
 

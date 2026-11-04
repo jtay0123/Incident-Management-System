@@ -3,6 +3,7 @@
 session_start();
 
 require_once '../config/config.php';
+require_once '../config/session_check.php';
 
 
 // Check if user is logged in
@@ -40,9 +41,9 @@ $roleFolder = $roleFolders[$userRole];
 // Default page for each role
 $defaultPages = [
     'Super Admin'    => 'manage_accounts',
-    'Admin'          => 'manage_incidents',
+    'Admin'          => 'admin_incidents',
     'Response Staff' => 'my_incidents',
-    'Reporter'       => 'my_reports',
+    'Reporter'       => 'reporter_my_reports',
     'Security'       => 'sensitive_incidents'
 ];
 
@@ -56,19 +57,23 @@ $validPages = [
 
     'Admin' => [
         'manage_locations',
+        'manage_categories',
         'manage_users',
-        'manage_incidents',
+        'admin_incidents',
+        'admin_incident_details',
         'manage_sla_settings'
     ],
 
     'Response Staff' => [
         'my_incidents',
-        'clock_in_out'
+        'incident_details',
+        'my_leave',
     ],
 
     'Reporter' => [
-        'my_reports',
-        'report_incident'
+        'reporter_my_reports',
+        'report_incident',
+        'reporter_incident_details'
     ],
 
     'Security' => [
@@ -355,6 +360,14 @@ if (!file_exists($contentFile)) {
                     </a>
 
 
+                    <a class="tab <?php echo ($page === 'manage_categories') ? 'active' : ''; ?>"
+                        href="dashboard.php?page=manage_categories">
+
+                        Category
+
+                    </a>
+
+
                     <a class="tab <?php echo ($page === 'manage_users') ? 'active' : ''; ?>"
                         href="dashboard.php?page=manage_users">
 
@@ -364,7 +377,7 @@ if (!file_exists($contentFile)) {
 
 
                     <a class="tab <?php echo ($page === 'manage_incidents') ? 'active' : ''; ?>"
-                        href="dashboard.php?page=manage_incidents">
+                        href="dashboard.php?page=admin_incidents">
 
                         Incidents
 
@@ -376,7 +389,9 @@ if (!file_exists($contentFile)) {
 
                         SLA Settings
 
+
                     </a>
+
 
             <?php
                     break;
@@ -398,10 +413,10 @@ if (!file_exists($contentFile)) {
                     </a>
 
 
-                    <a class="tab <?php echo ($page === 'clock_in_out') ? 'active' : ''; ?>"
-                        href="dashboard.php?page=clock_in_out">
+                    <a class="tab <?php echo ($page === 'my_leave') ? 'active' : ''; ?>"
+                        href="dashboard.php?page=my_leave">
 
-                        Clock In / Out
+                        My Leave
 
                     </a>
 
@@ -417,8 +432,8 @@ if (!file_exists($contentFile)) {
 
             ?>
 
-                    <a class="tab <?php echo ($page === 'my_reports') ? 'active' : ''; ?>"
-                        href="dashboard.php?page=my_reports">
+                    <a class="tab <?php echo ($page === 'reporter_my_reports') ? 'active' : ''; ?>"
+                        href="dashboard.php?page=reporter_my_reports">
 
                         My Reports
 
@@ -613,7 +628,8 @@ if (!file_exists($contentFile)) {
     <script src="<?php echo BASE_URL; ?>/assets/js/main.js">
     </script>
 
-
+    <!-- QR Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <!-- Current User -->
 
     <script>
@@ -641,19 +657,27 @@ if (!file_exists($contentFile)) {
 
         'manage_locations' => ['manage_locations.js'],
 
+        'manage_categories' => ['manage_categories.js'],
+
         'manage_users' => ['admin_manage_users.js'],
 
-        'manage_incidents' => [],
+        'admin_incidents' => ['admin_incidents.js'],
+
+        'admin_incident_details' => ['admin_incidents_details.js'],
 
         'manage_sla_settings' => ['manage_sla_settings.js'],
 
-        'my_incidents' => [],
+        'my_incidents' => ['report_staff.js'],
 
-        'clock_in_out' => [],
+        'my_leave' => ['manage_leave.js'],
 
-        'my_reports' => [],
+        'incident_details' => ['incident_details.js'],
 
-        'report_incident' => [],
+        'reporter_my_reports' => ['reporter_my_reports.js'],
+
+        'reporter_incident_details' => ['reporter_incident_details.js'],
+
+        'report_incident' => ['report_incident.js'],
 
         'sensitive_incidents' => []
 

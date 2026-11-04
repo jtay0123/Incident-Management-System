@@ -99,8 +99,7 @@ if (
             try {
 
                 if (
-                    $auth->resetPassword(
-                        $email,
+                    $auth->resetFirstLoginPassword(
                         $newPassword,
                         $confirmPassword
                     )

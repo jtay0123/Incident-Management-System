@@ -5,8 +5,12 @@ require_once '../config/conn.php';
 require_once '../controller/AuthController.php';
 
 $auth = new AuthController($conn);
-$error = '';
+
+$error = $_SESSION['login_error'] ?? '';
 $message = '';
+
+unset($_SESSION['login_error']);
+
 
 // Handle login
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
@@ -81,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                     <a href="<?php echo BASE_URL; ?>/app/view/register.php">Create Account</a>
                 </div>
                 <div class="links">
-                    <a href="<?php echo BASE_URL; ?>/app/view/reset_password.php">Forgot password?</a>
+                    <a href="<?php echo BASE_URL; ?>/app/view/reset_password_otp.php">Forgot password?</a>
                 </div>
             </div>
         </div>

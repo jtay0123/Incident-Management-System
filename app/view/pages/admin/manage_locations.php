@@ -11,7 +11,7 @@
             <h2>Manage Locations</h2>
 
             <p class="text-muted mb-0">
-                Manage campus locations and their QR codes.
+            <!--    Manage campus locations and their QR codes. -->
             </p>
 
         </div>
@@ -596,7 +596,5 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 
-<!-- ===================================================== -->
-<!-- MANAGE LOCATIONS JAVASCRIPT -->
-<!-- ===================================================== -->
+
 

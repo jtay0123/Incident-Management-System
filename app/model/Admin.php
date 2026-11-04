@@ -165,7 +165,11 @@ class Admin
         $departmentId
     ) {
         $accountStatus = 'Active';
-        $availabilityStatus = null;
+        $availabilityStatus =
+            ($role === 'Response Staff')
+                ? 'Available'
+                : null;
+
         $mustChangePassword = 1;
 
 

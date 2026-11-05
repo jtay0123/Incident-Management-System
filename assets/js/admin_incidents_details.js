@@ -1074,192 +1074,230 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-    // =====================================================
-    // ADMIN ACTIONS
-    // =====================================================
+// =====================================================
+// ADMIN ACTIONS
+// =====================================================
 
-    function displayAdminActions(
-        incident
-    ) {
+function displayAdminActions(incident) {
 
-        const container =
-            document.getElementById(
-                "adminActions"
-            );
+    const container =
+        document.getElementById("adminActions");
+
+    if (!container) {
+        return;
+    }
+
+    let html = "";
 
 
-        if (!container) {
+    // =================================================
+    // UPDATE PRIORITY
+    // =================================================
+
+    if (incident.status !== "Closed") {
+
+        html += `
+            <button
+                type="button"
+                class="btn btn-warning me-2 mb-2"
+                id="updatePriorityBtn"
+            >
+                Update Priority
+            </button>
+        `;
+    }
+
+
+    // =================================================
+    // REASSIGN
+    // =================================================
+
+    if (incident.status !== "Closed") {
+
+        html += `
+            <button
+                type="button"
+                class="btn btn-primary me-2 mb-2"
+                id="reassignIncidentBtn"
+            >
+                Reassign Incident
+            </button>
+        `;
+    }
+
+
+    // =================================================
+    // MARK ESCALATION AS REVIEWED
+    // =================================================
+
+    if (incident.escalation_status === "Raised") {
+
+        html += `
+            <button
+                type="button"
+                class="btn btn-success me-2 mb-2"
+                id="reviewEscalationBtn"
+            >
+                Mark as Reviewed
+            </button>
+        `;
+    }
+
+
+    // =================================================
+    // CLOSE
+    // =================================================
+
+    if (incident.status === "Resolved") {
+
+        html += `
+            <button
+                type="button"
+                class="btn btn-success me-2 mb-2"
+                id="closeIncidentBtn"
+            >
+                Close Incident
+            </button>
+        `;
+    }
+
+
+    // =================================================
+    // NO AVAILABLE ACTIONS
+    // =================================================
+
+    if (!html) {
+
+        html = `
+            <span class="text-muted">
+                No administrative actions are available.
+            </span>
+        `;
+    }
+
+
+    container.innerHTML = html;
+
+
+    // =================================================
+    // UPDATE PRIORITY BUTTON
+    // =================================================
+
+    const updatePriorityButton =
+        document.getElementById("updatePriorityBtn");
+
+    if (updatePriorityButton) {
+
+        updatePriorityButton.addEventListener(
+            "click",
+            function () {
+                showUpdatePriorityForm(incident);
+            }
+        );
+    }
+
+
+    // =================================================
+    // REASSIGN BUTTON
+    // =================================================
+
+    const reassignButton =
+        document.getElementById("reassignIncidentBtn");
+
+    if (reassignButton) {
+
+        reassignButton.addEventListener(
+            "click",
+            function () {
+                showReassignForm(incident);
+            }
+        );
+    }
+
+
+    // =================================================
+    // REVIEW ESCALATION BUTTON
+    // =================================================
+
+    const reviewButton =
+        document.getElementById("reviewEscalationBtn");
+
+    if (reviewButton) {
+
+        reviewButton.addEventListener(
+            "click",
+            function () {
+                reviewIncidentEscalation(
+                    incident.incident_id
+                );
+            }
+        );
+    }
+
+
+    // =================================================
+    // CLOSE BUTTON
+    // =================================================
+
+    const closeButton =
+        document.getElementById("closeIncidentBtn");
+
+    if (closeButton) {
+
+        closeButton.addEventListener(
+            "click",
+            function () {
+                closeIncident(incident.incident_id);
+            }
+        );
+    }
+
+}
+// =====================================================
+// REVIEW INCIDENT ESCALATION
+// =====================================================
+
+async function reviewIncidentEscalation(incidentId) {
+
+    if (!confirm("Mark this escalation as reviewed?")) {
+        return;
+    }
+
+    try {
+
+        const formData = new FormData();
+        formData.append("incident_id", incidentId);
+
+        const response = await fetch(
+            `${BASE_URL}/app/controller/AdminIncidentController.php?action=review_escalation`,
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+        const data = await response.json();
+
+        if (!data.success) {
+            alert(data.message || "Unable to review escalation.");
             return;
         }
 
+        alert(data.message);
 
-        let html = "";
+        loadIncidentDetails();
 
+    } catch (error) {
 
-        // =================================================
-        // UPDATE PRIORITY
-        // =================================================
-
-        if (
-            incident.status !== "Closed"
-        ) {
-
-            html += `
-
-                <button
-                    type="button"
-                    class="btn btn-warning me-2 mb-2"
-                    id="updatePriorityBtn"
-                >
-                    Update Priority
-                </button>
-
-            `;
-
-        }
-
-
-        // =================================================
-        // REASSIGN
-        // =================================================
-
-        if (
-            incident.status !== "Closed"
-        ) {
-
-            html += `
-
-                <button
-                    type="button"
-                    class="btn btn-primary me-2 mb-2"
-                    id="reassignIncidentBtn"
-                >
-                    Reassign Incident
-                </button>
-
-            `;
-
-        }
-
-
-        // =================================================
-        // CLOSE
-        // =================================================
-
-        if (
-            incident.status === "Resolved"
-        ) {
-
-            html += `
-
-                <button
-                    type="button"
-                    class="btn btn-success me-2 mb-2"
-                    id="closeIncidentBtn"
-                >
-                    Close Incident
-                </button>
-
-            `;
-
-        }
-
-
-        if (!html) {
-
-            html = `
-
-                <span class="text-muted">
-                    No administrative actions are available.
-                </span>
-
-            `;
-
-        }
-
-
-        container.innerHTML =
-            html;
-
-
-        // =================================================
-        // UPDATE PRIORITY BUTTON
-        // =================================================
-
-        const updatePriorityButton =
-            document.getElementById(
-                "updatePriorityBtn"
-            );
-
-
-        if (updatePriorityButton) {
-
-            updatePriorityButton.addEventListener(
-                "click",
-                function () {
-
-                    showUpdatePriorityForm(
-                        incident
-                    );
-
-                }
-            );
-
-        }
-
-
-        // =================================================
-        // REASSIGN BUTTON
-        // =================================================
-
-        const reassignButton =
-            document.getElementById(
-                "reassignIncidentBtn"
-            );
-
-
-        if (reassignButton) {
-
-            reassignButton.addEventListener(
-                "click",
-                function () {
-
-                    showReassignForm(
-                        incident
-                    );
-
-                }
-            );
-
-        }
-
-
-        // =================================================
-        // CLOSE BUTTON
-        // =================================================
-
-        const closeButton =
-            document.getElementById(
-                "closeIncidentBtn"
-            );
-
-
-        if (closeButton) {
-
-            closeButton.addEventListener(
-                "click",
-                function () {
-
-                    closeIncident(
-                        incident.incident_id
-                    );
-
-                }
-            );
-
-        }
+        console.error("Review escalation error:", error);
+        alert("Unable to review escalation.");
 
     }
+}
+
+
+
+    
 
     
     // =====================================================
@@ -1638,7 +1676,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
-
+    
 
 
     // =====================================================
@@ -1777,6 +1815,28 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById(
                 "reassignMessage"
             );
+
+        // =================================================
+        // REVIEW ESCALATION BUTTON
+        // =================================================
+
+        const reviewButton =
+            document.getElementById("reviewEscalationBtn");
+
+        if (reviewButton) {
+
+            reviewButton.addEventListener(
+                "click",
+                function () {
+
+                    reviewIncidentEscalation(
+                        incident.incident_id
+                    );
+
+                }
+            );
+
+        }
 
 
         // =================================================
@@ -2049,6 +2109,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             }
         );
+
+        
 
 
         // =================================================

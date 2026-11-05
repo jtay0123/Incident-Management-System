@@ -130,6 +130,45 @@
         </div>
 
     </div>
+
+    <!-- INCIDENTS RAISED TO ADMIN ALERT -->
+    <div
+        id="raisedToAdminAlertSection"
+        class="alert alert-warning"
+        style="display: none;"
+    >
+        <h6 class="fw-bold">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Incidents Raised to Admin
+        </h6>
+
+        <p
+            id="raisedToAdminAlertMessage"
+            class="mb-2"
+        ></p>
+
+        <ul
+            id="raisedToAdminAlertList"
+            class="mb-0"
+        ></ul>
+    </div>
+
+
+    <!-- PENDING INCIDENT CLOSURE ALERT -->
+    <div
+        id="pendingClosureAlertSection"
+        class="alert alert-success"
+        style="display: none;"
+    >
+        <h6 class="fw-bold">
+            <i class="bi bi-check-circle me-2"></i>
+            Pending Incident Closure
+        </h6>
+
+        <p id="pendingClosureAlertMessage" class="mb-2"></p>
+
+        <ul id="pendingClosureAlertList" class="mb-0"></ul>
+    </div>
      
     
     <!-- ============================= -->
@@ -157,12 +196,6 @@
 
                 <ul id="overdueAlertList" class="mb-2">
                 </ul>
-
-                <button type="button"
-                        id="viewOverdueIncidents"
-                        class="btn btn-danger btn-sm">
-                    View Overdue Incidents
-                </button>
 
             </div>
 

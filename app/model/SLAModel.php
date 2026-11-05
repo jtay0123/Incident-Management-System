@@ -56,44 +56,38 @@ class SLAModel
     // ==========================================
     // UPDATE SLA SETTINGS
     // ==========================================
-    public function updateSLASettings(
-        $settings,
-        $updatedBy = null
-    ) {
-        $stmt = $this->conn->prepare("
-            UPDATE sla_settings
-            SET
-                sla_hours = ?,
-                updated_at = NOW(),
-                updated_by = ?
-            WHERE priority = ?
-        ");
+    public function updateSLASettings($settings, $updatedBy = null)
+{
+    $stmt = $this->conn->prepare("
+        UPDATE sla_settings
+        SET sla_hours = ?, updated_by = ?
+        WHERE priority = ?
+    ");
 
-        if (!$stmt) {
+    if (!$stmt) {
+        return false;
+    }
+
+    $this->conn->begin_transaction();   // NEW
+
+    foreach ($settings as $priority => $slaHours) {
+
+        $slaHours = (int) $slaHours;
+
+        $stmt->bind_param("iis", $slaHours, $updatedBy, $priority);
+
+        if (!$stmt->execute()) {
+            $this->conn->rollback();    // NEW
+            $stmt->close();
             return false;
         }
-
-        foreach ($settings as $priority => $slaHours) {
-
-            $slaHours = (int) $slaHours;
-
-            $stmt->bind_param(
-                "iis",
-                $slaHours,
-                $updatedBy,
-                $priority
-            );
-
-            if (!$stmt->execute()) {
-                $stmt->close();
-                return false;
-            }
-        }
-
-        $stmt->close();
-
-        return true;
     }
+
+    $this->conn->commit();              // NEW
+    $stmt->close();
+
+    return true;
+}
 
 
     // ==========================================

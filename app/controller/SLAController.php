@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/../config/conn.php';
 require_once __DIR__ . '/../model/SLAModel.php';
-
+session_start();
 
 class SLAController
 {
@@ -36,78 +36,58 @@ class SLAController
     // UPDATE SLA SETTINGS
     // ==========================================
     public function updateSLASettings()
-    {
-        header('Content-Type: application/json');
+{
+    header('Content-Type: application/json');
 
-        $settings = $_POST['settings'] ?? [];
+    
 
-        if (!is_array($settings) || empty($settings)) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Invalid SLA settings.'
-            ]);
+    $settings = $_POST['settings'] ?? [];
 
-            exit();
-        }
-
-
-        // ==========================================
-        // VALIDATE PRIORITIES
-        // ==========================================
-
-        $allowedPriorities = [
-            'Low',
-            'Medium',
-            'High',
-            'Emergency'
-        ];
-
-        foreach ($settings as $priority => $slaHours) {
-
-            if (!in_array($priority, $allowedPriorities)) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Invalid SLA priority.'
-                ]);
-
-                exit();
-            }
-
-            $slaHours = (int) $slaHours;
-
-            if ($slaHours <= 0) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'SLA hours must be greater than 0.'
-                ]);
-
-                exit();
-            }
-        }
-
-
-        // ==========================================
-        // UPDATE SLA SETTINGS
-        // ==========================================
-
-        $updatedBy = $_SESSION['user_id'] ?? null;
-
-        $success = $this->slaModel->updateSLASettings(
-            $settings,
-            $updatedBy
-        );
-
-
+    if (!is_array($settings) || empty($settings)) {
         echo json_encode([
-            'success' => $success,
-            'message' => $success
-                ? 'SLA settings updated successfully.'
-                : 'Failed to update SLA settings.'
+            'success' => false,
+            'message' => 'Invalid SLA settings.'
         ]);
-
         exit();
     }
 
+    $allowedPriorities = ['Low', 'Medium', 'High', 'Emergency'];
+
+    foreach ($settings as $priority => $slaHours) {
+
+        // CHANGED: added true (strict check)
+        if (!in_array($priority, $allowedPriorities, true)) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Invalid SLA priority.'
+            ]);
+            exit();
+        }
+
+        $slaHours = (int) $slaHours;
+
+        // CHANGED: added an upper limit
+        if ($slaHours <= 0 || $slaHours > 720) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'SLA hours must be between 1 and 720.'
+            ]);
+            exit();
+        }
+    }
+
+    $updatedBy = $_SESSION['user_id'] ?? null;
+
+    $success = $this->slaModel->updateSLASettings($settings, $updatedBy);
+
+    echo json_encode([
+        'success' => $success,
+        'message' => $success
+            ? 'SLA settings updated successfully.'
+            : 'Failed to update SLA settings.'
+    ]);
+    exit();
+}
 
     // ==========================================
     // GET WORKING HOURS

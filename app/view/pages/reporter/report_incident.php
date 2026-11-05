@@ -249,66 +249,58 @@
                 </div>
 
 
-                <!-- ==========================================
-                     IMAGE UPLOAD
-                ========================================== -->
-                <div class="mb-4">
+<!-- ==========================================
+     IMAGE UPLOAD
+========================================== -->
+<div class="mb-4">
 
-                    <label
-                        for="incidentImage"
-                        class="form-label fw-semibold"
-                    >
-                        Picture
-                    </label>
+    <label
+        for="incidentImage"
+        class="form-label fw-semibold"
+    >
+        Pictures
+    </label>
 
-                    <input
-                        type="file"
-                        class="form-control"
-                        id="incidentImage"
-                        name="incident_image"
-                        accept="image/jpeg,image/png,image/jpg,video/mp4,video/quicktime"
-                    >
+<input
+    type="file"
+    class="form-control"
+    id="incidentImage"
+    name="incident_image[]"
+    accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+    multiple
+>
 
-                    <div class="form-text">
-                        Upload a picture related to the incident.
-                        JPG or PNG only.
-                    </div>
+    <div class="form-text">
+        Upload up to 5 pictures related to the incident.
+        JPG or PNG only. Maximum 5 MB per image.
+    </div>
 
+    <!-- IMAGE PREVIEW -->
+    <div
+        id="imagePreviewContainer"
+        class="mt-3 d-none"
+    >
 
-                    <!-- IMAGE PREVIEW -->
-                    <div
-                        id="imagePreviewContainer"
-                        class="mt-3 d-none"
-                    >
+        <p class="small fw-semibold mb-2">
+            Image Preview
+        </p>
 
-                        <p class="small fw-semibold mb-2">
-                            Image Preview
-                        </p>
+        <div
+            id="imagePreview"
+            class="d-flex flex-wrap gap-3"
+        ></div>
 
-                        <img
-                            id="imagePreview"
-                            src=""
-                            alt="Incident image preview"
-                            class="img-fluid rounded border"
-                            style="max-width: 300px; max-height: 250px; object-fit: contain;"
-                        >
+        <button
+            type="button"
+            class="btn btn-sm btn-outline-danger mt-2"
+            id="removeImageBtn"
+        >
+            Remove All Images
+        </button>
 
-                        <div class="mt-2">
+    </div>
 
-                            <button
-                                type="button"
-                                class="btn btn-sm btn-outline-danger"
-                                id="removeImageBtn"
-                            >
-                                Remove Image
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
+</div>
 
                 <!-- ==========================================
                      FORM MESSAGE

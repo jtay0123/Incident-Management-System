@@ -67,7 +67,7 @@ class IncidentController
          * Sensitive incidents are not selected
          * by Reporter for now.
          */
-        $isSensitive = 0;
+        $reporterApproved = 0;
 
 
         /* -------------------------
@@ -140,7 +140,7 @@ class IncidentController
                 $locationId,
                 $title,
                 $description,
-                $isSensitive
+                $reporterApproved,
             );
 
 
@@ -168,172 +168,164 @@ class IncidentController
             );
 
 
-        /* =====================================================
-           INCIDENT IMAGE UPLOAD
-           ===================================================== */
+/* =====================================================
+   INCIDENT IMAGE UPLOAD
+   ===================================================== */
+
+if (
+    isset($_FILES['incident_image']) &&
+    !empty($_FILES['incident_image']['name'][0])
+) {
+
+    $images = $_FILES['incident_image'];
+
+    $totalImages = count($images['name']);
+
+    // Maximum 5 images per incident.
+    if ($totalImages > 5) {
+        $this->jsonResponse(
+            false,
+            'You can upload a maximum of 5 images.'
+        );
+        return;
+    }
+
+    $allowedTypes = [
+        'image/jpg',
+        'image/jpeg',
+        'image/png'
+    ];
+
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+
+    $uploadDirectory =
+        __DIR__ . '/../../uploads/incidents/';
+
+    if (!is_dir($uploadDirectory)) {
+
+        if (!mkdir($uploadDirectory, 0755, true)) {
+            $this->jsonResponse(
+                false,
+                'Failed to create image upload directory.'
+            );
+            return;
+        }
+    }
+
+    // Process each uploaded image.
+    for ($i = 0; $i < $totalImages; $i++) {
+
+        // Skip empty file inputs.
+        if (
+            $images['error'][$i] === UPLOAD_ERR_NO_FILE
+        ) {
+            continue;
+        }
 
         if (
-            isset($_FILES['incident_image']) &&
-            $_FILES['incident_image']['error']
-                !== UPLOAD_ERR_NO_FILE
+            $images['error'][$i] !== UPLOAD_ERR_OK
+        ) {
+            $this->jsonResponse(
+                false,
+                'Failed to upload one of the incident images.'
+            );
+            return;
+        }
+
+        $tmpName = $images['tmp_name'][$i];
+        $fileSize = $images['size'][$i];
+        $originalName = $images['name'][$i];
+
+        // Check actual MIME type.
+        $actualMimeType = $finfo->file($tmpName);
+
+        if (
+            !in_array(
+                $actualMimeType,
+                $allowedTypes,
+                true
+            )
+        ) {
+            $this->jsonResponse(
+                false,
+                'Only JPG and PNG images are allowed.'
+            );
+            return;
+        }
+
+        // Maximum 5 MB per image.
+        if ($fileSize > 5 * 1024 * 1024) {
+            $this->jsonResponse(
+                false,
+                'Each image must not exceed 5 MB.'
+            );
+            return;
+        }
+
+        // Determine file extension.
+        $extension =
+            ($actualMimeType === 'image/png')
+                ? 'png'
+                : 'jpg';
+
+        // Generate unique filename.
+        $newFileName =
+            'incident_' .
+            $incidentId .
+            '_' .
+            bin2hex(random_bytes(8)) .
+            '.' .
+            $extension;
+
+        $filePath =
+            $uploadDirectory .
+            $newFileName;
+
+        // Save image.
+        if (
+            !move_uploaded_file(
+                $tmpName,
+                $filePath
+            )
+        ) {
+            $this->jsonResponse(
+                false,
+                'Failed to save one of the incident images.'
+            );
+            return;
+        }
+
+        $databaseFilePath =
+            'uploads/incidents/' .
+            $newFileName;
+
+        // Save attachment information.
+        $attachmentResult =
+            $this->incidentModel->addAttachment(
+                $incidentId,
+                $reporterId,
+                'Evidence',
+                $originalName,
+                $databaseFilePath,
+                $actualMimeType
+            );
+
+        if (
+            !$attachmentResult['success']
         ) {
 
-            $image =
-                $_FILES['incident_image'];
-
-
-            if (
-                $image['error'] !==
-                UPLOAD_ERR_OK
-            ) {
-                $this->jsonResponse(
-                    false,
-                    'Failed to upload incident image.'
-                );
-                return;
+            if (file_exists($filePath)) {
+                unlink($filePath);
             }
 
-
-            $allowedTypes = [
-                'image/jpeg',
-                'image/png',
-                'video/mp4'
-            ];
-
-
-            $finfo =
-                new finfo(FILEINFO_MIME_TYPE);
-
-
-            $actualMimeType =
-                $finfo->file(
-                    $image['tmp_name']
-                );
-
-
-            if (
-                !in_array(
-                    $actualMimeType,
-                    $allowedTypes,
-                    true
-                )
-            ) {
-                $this->jsonResponse(
-                    false,
-                    'Only JPG and PNG images are allowed.'
-                );
-                return;
-            }
-
-
-            if (
-                $image['size'] >
-                5 * 1024 * 1024
-            ) {
-                $this->jsonResponse(
-                    false,
-                    'Image size must not exceed 5 MB.'
-                );
-                return;
-            }
-
-
-            $uploadDirectory =
-                __DIR__ .
-                '/../../uploads/incidents/';
-
-
-            if (!is_dir($uploadDirectory)) {
-
-                if (
-                    !mkdir(
-                        $uploadDirectory,
-                        0755,
-                        true
-                    )
-                ) {
-                    $this->jsonResponse(
-                        false,
-                        'Failed to create image upload directory.'
-                    );
-                    return;
-                }
-            }
-
-
-            $extension =
-                (
-                    $actualMimeType ===
-                    'image/png'
-                )
-                    ? 'png'
-                    : 'jpg';
-
-
-            $newFileName =
-                'incident_' .
-                $incidentId .
-                '_' .
-                bin2hex(
-                    random_bytes(8)
-                ) .
-                '.' .
-                $extension;
-
-
-            $filePath =
-                $uploadDirectory .
-                $newFileName;
-
-
-            if (
-                !move_uploaded_file(
-                    $image['tmp_name'],
-                    $filePath
-                )
-            ) {
-                $this->jsonResponse(
-                    false,
-                    'Failed to save incident image.'
-                );
-                return;
-            }
-
-
-            $databaseFilePath =
-                'uploads/incidents/' .
-                $newFileName;
-
-
-            $attachmentResult =
-                $this->incidentModel->addAttachment(
-                    $incidentId,
-                    $reporterId,
-                    'Evidence',
-                    $image['name'],
-                    $databaseFilePath,
-                    $actualMimeType
-                );
-
-
-            if (
-                !$attachmentResult['success']
-            ) {
-
-                if (
-                    file_exists($filePath)
-                ) {
-                    unlink($filePath);
-                }
-
-
-                $this->jsonResponse(
-                    false,
-                    'Image uploaded but failed to save attachment information.'
-                );
-                return;
-            }
+            $this->jsonResponse(
+                false,
+                'Image uploaded but failed to save attachment information.'
+            );
+            return;
         }
+    }
+}
 
 
         /* =====================================================
@@ -689,45 +681,45 @@ class IncidentController
    ADMIN - ADD INCIDENT NOTE
    ========================================================= */
 
-public function addAdminNote()
-{
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
+    public function addAdminNote()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (
+            !isset($_SESSION['user_id']) ||
+            !isset($_SESSION['user_role']) ||
+            $_SESSION['user_role'] !== 'Admin'
+        ) {
+            $this->jsonResponse(false, 'Unauthorized.');
+            return;
+        }
+
+        $incidentId = (int) ($_POST['incident_id'] ?? 0);
+        $note = trim($_POST['message'] ?? '');
+        $adminId = (int) $_SESSION['user_id'];
+
+        if (
+            $incidentId <= 0 ||
+            $note === '' ||
+            strlen($note) > 1000
+        ) {
+            $this->jsonResponse(false, 'Please enter a valid note.');
+            return;
+        }
+
+        $result = $this->incidentModel->addAdminIncidentNote(
+            $incidentId,
+            $adminId,
+            $note
+        );
+
+        $this->jsonResponse(
+            $result['success'],
+            $result['message']
+        );
     }
-
-    if (
-        !isset($_SESSION['user_id']) ||
-        !isset($_SESSION['user_role']) ||
-        $_SESSION['user_role'] !== 'Admin'
-    ) {
-        $this->jsonResponse(false, 'Unauthorized.');
-        return;
-    }
-
-    $incidentId = (int) ($_POST['incident_id'] ?? 0);
-    $note = trim($_POST['message'] ?? '');
-    $adminId = (int) $_SESSION['user_id'];
-
-    if (
-        $incidentId <= 0 ||
-        $note === '' ||
-        strlen($note) > 1000
-    ) {
-        $this->jsonResponse(false, 'Please enter a valid note.');
-        return;
-    }
-
-    $result = $this->incidentModel->addAdminIncidentNote(
-        $incidentId,
-        $adminId,
-        $note
-    );
-
-    $this->jsonResponse(
-        $result['success'],
-        $result['message']
-    );
-}
 
     /* =========================================================
     GET INCIDENT ATTACHMENTS
@@ -837,6 +829,202 @@ public function addAdminNote()
                 ]
             );
         }
+
+        /* =========================================================
+   REPORTER - APPROVE OR REJECT RESOLUTION
+   ========================================================= */
+
+    public function reporterApproveIncident()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        // Only Reporter can perform this action.
+        if (
+            !isset($_SESSION['user_id']) ||
+            !isset($_SESSION['user_role']) ||
+            $_SESSION['user_role'] !== 'Reporter'
+        ) {
+            $this->jsonResponse(
+                false,
+                'Unauthorized access.'
+            );
+            return;
+        }
+
+        $reporterId = (int) $_SESSION['user_id'];
+
+        $incidentId = (int) ($_POST['incident_id'] ?? 0);
+
+        $decision = trim($_POST['decision'] ?? '');
+
+        $message = trim($_POST['message'] ?? '');
+
+        if ($incidentId <= 0) {
+            $this->jsonResponse(false, 'Invalid incident ID.');
+            return;
+        }
+
+        if (!in_array($decision, ['approve', 'reject'], true)) {
+            $this->jsonResponse(false, 'Invalid decision.');
+            return;
+        }
+
+        // Check that this incident belongs to the Reporter.
+        $incident = $this->incidentModel->getIncidentById($incidentId);
+
+        if (
+            !$incident ||
+            (int) $incident['reporter_id'] !== $reporterId
+        ) {
+            $this->jsonResponse(
+                false,
+                'Incident not found.'
+            );
+            return;
+        }
+
+        // Only Resolved incidents can be reviewed.
+        if ($incident['status'] !== 'Resolved') {
+            $this->jsonResponse(
+                false,
+                'Only resolved incidents can be reviewed.'
+            );
+            return;
+        }
+
+        if ($decision === 'approve') {
+
+            // Mark Reporter approval.
+            $sql = "
+                UPDATE incidents
+                SET reporter_approved = 1
+                WHERE incident_id = ?
+                AND reporter_id = ?
+                AND status = 'Resolved'
+            ";
+
+            $stmt = $this->conn->prepare($sql);
+
+            if (!$stmt) {
+                $this->jsonResponse(false, 'Failed to prepare approval.');
+                return;
+            }
+
+            $stmt->bind_param('ii', $incidentId, $reporterId);
+
+            if (!$stmt->execute() || $stmt->affected_rows !== 1) {
+                $stmt->close();
+                $this->jsonResponse(false, 'Failed to approve incident.');
+                return;
+            }
+
+            $stmt->close();
+
+            $updateMessage = 'Reporter confirmed that the incident has been fixed.';
+
+            $status = 'Resolved';
+
+        } else {
+
+            if ($message === '') {
+                $this->jsonResponse(
+                    false,
+                    'Please provide a reason why the incident is not fixed.'
+                );
+                return;
+            }
+
+            // Return incident to In Progress and reset approval.
+            $this->conn->begin_transaction();
+
+            try {
+
+                $sql = "
+                    UPDATE incidents
+                    SET
+                        status = 'In Progress',
+                        reporter_approved = 0,
+                        resolved_at = NULL
+                    WHERE incident_id = ?
+                    AND reporter_id = ?
+                    AND status = 'Resolved'
+                ";
+
+                $stmt = $this->conn->prepare($sql);
+
+                if (!$stmt) {
+                    throw new Exception('Failed to prepare incident update.');
+                }
+
+                $stmt->bind_param('ii', $incidentId, $reporterId);
+
+                if (!$stmt->execute() || $stmt->affected_rows !== 1) {
+                    $stmt->close();
+                    throw new Exception('Failed to return incident to In Progress.');
+                }
+
+                $stmt->close();
+
+                $status = 'In Progress';
+
+                $updateMessage = 'Reporter reported that the incident is not fixed: ' . $message;
+
+                $sql = "
+                    INSERT INTO incident_updates
+                    (
+                        incident_id,
+                        user_id,
+                        status,
+                        update_message
+                    )
+                    VALUES (?, ?, ?, ?)
+                ";
+
+                $stmt = $this->conn->prepare($sql);
+
+                if (!$stmt) {
+                    throw new Exception('Failed to prepare incident history.');
+                }
+
+                $stmt->bind_param(
+                    'iiss',
+                    $incidentId,
+                    $reporterId,
+                    $status,
+                    $updateMessage
+                );
+
+                if (!$stmt->execute()) {
+                    $stmt->close();
+                    throw new Exception('Failed to save incident history.');
+                }
+
+                $stmt->close();
+
+                $this->conn->commit();
+
+            } catch (Exception $e) {
+
+                $this->conn->rollback();
+
+                $this->jsonResponse(false, $e->getMessage());
+                return;
+            }
+        }
+
+        $this->jsonResponse(
+            true,
+            $decision === 'approve'
+                ? 'Incident resolution approved successfully.'
+                : 'Incident returned to In Progress.',
+            [
+                'status' => $status,
+                'reporter_approved' => $decision === 'approve' ? 1 : 0
+            ]
+        );
+    }
 
 
    
@@ -1781,6 +1969,160 @@ public function getStaffIncidentDetails()
         exit;
     }
 
+    
+
+
+public function getStaffAlerts()
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    if (
+        !isset($_SESSION['user_id']) ||
+        !isset($_SESSION['user_role']) ||
+        $_SESSION['user_role'] !== 'Response Staff'
+    ) {
+        $this->jsonResponse(false, 'Unauthorized access.');
+        return;
+    }
+
+    $staffId = (int) $_SESSION['user_id'];
+
+    $incidents = $this->incidentModel->getIncidentsByStaff($staffId);
+
+    // Debug: Check incident information
+    error_log("STAFF INCIDENTS: " . json_encode(
+        array_map(function ($incident) {
+            return [
+                'id' => $incident['incident_id'],
+                'status' => $incident['status'],
+                'sla_status' => $incident['sla_status'],
+                'reporter_approved' => $incident['reporter_approved'] ?? null
+            ];
+        }, $incidents)
+    ));
+
+    $assignmentAlerts = [];
+    $adminAlerts = [];
+    $attentionAlerts = [];
+    $reworkAlerts = [];
+
+    foreach ($incidents as $incident) {
+
+        $status = strtolower(trim($incident['status'] ?? ''));
+        $sla = strtolower(trim($incident['sla_status'] ?? ''));
+
+        // Exclude resolved and closed incidents from all alerts.
+        if (in_array($status, ['resolved', 'closed'], true)) {
+            continue;
+        }
+
+        // Rework Required
+        if (
+            array_key_exists('reporter_approved', $incident) &&
+            $incident['reporter_approved'] !== null &&
+            (int) $incident['reporter_approved'] === 0 &&
+            $status === 'in progress'
+        ) {
+            $reworkAlerts[] = $incident;
+        }
+
+        // New / Reassigned Incidents
+        if ($status === 'assigned') {
+            $assignmentAlerts[] = $incident;
+        }
+
+        // Admin Updates
+        $updates = $this->incidentModel->getIncidentUpdates(
+            $incident['incident_id']
+        );
+
+        $latestAdminUpdate = null;
+        $latestIncidentUpdate = null;
+
+        foreach ($updates as $update) {
+
+            // Get the latest update from any user.
+            if (
+                $latestIncidentUpdate === null ||
+                strtotime($update['created_at']) >
+                strtotime($latestIncidentUpdate['created_at']) ||
+                (
+                    strtotime($update['created_at']) ===
+                    strtotime($latestIncidentUpdate['created_at']) &&
+                    $update['update_id'] > $latestIncidentUpdate['update_id']
+                )
+            ) {
+                $latestIncidentUpdate = $update;
+            }
+
+            // Get the latest update from Admin.
+            if (($update['role'] ?? '') === 'Admin') {
+
+                if (
+                    $latestAdminUpdate === null ||
+                    strtotime($update['created_at']) >
+                    strtotime($latestAdminUpdate['created_at']) ||
+                    (
+                        strtotime($update['created_at']) ===
+                        strtotime($latestAdminUpdate['created_at']) &&
+                        $update['update_id'] > $latestAdminUpdate['update_id']
+                    )
+                ) {
+                    $latestAdminUpdate = $update;
+                }
+            }
+        }
+
+        // Show Admin Updates only when the latest incident activity
+        // was made by Admin.
+        if (
+            $latestAdminUpdate !== null &&
+            $latestIncidentUpdate !== null &&
+            $latestIncidentUpdate['update_id'] ===
+            $latestAdminUpdate['update_id']
+        ) {
+            $adminAlerts[] = [
+                'incident_id' => $incident['incident_id'],
+                'title' => $incident['title'],
+                'update_message' =>
+                    $latestAdminUpdate['update_message'] ?? '',
+                'created_at' =>
+                    $latestAdminUpdate['created_at'] ?? ''
+            ];
+        }
+
+        // SLA Overdue Incidents
+        if ($sla === 'overdue') {
+            $attentionAlerts[] = $incident;
+        }
+    }
+
+    // Debug: Check alert results
+    error_log("STAFF ALERTS: " . json_encode([
+        'assignments' => array_column($assignmentAlerts, 'incident_id'),
+        'admin_updates' => array_column($adminAlerts, 'incident_id'),
+        'attention' => array_column($attentionAlerts, 'incident_id'),
+        'rework' => array_column($reworkAlerts, 'incident_id')
+    ]));
+
+    // Return alert data
+    $this->jsonResponse(
+        true,
+        'Staff alerts retrieved successfully.',
+        [
+            'assignments' => $assignmentAlerts,
+            'admin_updates' => $adminAlerts,
+            'attention' => $attentionAlerts,
+            'rework' => $reworkAlerts
+        ]
+    );
+}
+
+
+
+
 
     /* =========================================================
        ACTION ROUTER
@@ -1834,6 +2176,10 @@ public function getStaffIncidentDetails()
                 $this->getMyIncidents();
                 break;
 
+            case 'reporter_approve_incident':
+                $this->reporterApproveIncident();
+                break;
+
 
             /* -------------------------
                Admin
@@ -1878,6 +2224,10 @@ public function getStaffIncidentDetails()
                 $this->getStaffIncidentDetails();
                 break;
 
+            case 'get_staff_alerts':
+                $this->getStaffAlerts();
+                break;
+
 
             /*
              * IMPORTANT:
@@ -1912,6 +2262,7 @@ public function getStaffIncidentDetails()
         }
     }
 }
+
 
 
 /* =========================================================

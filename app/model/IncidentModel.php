@@ -217,7 +217,7 @@ class IncidentModel
         $locationId,
         $title,
         $description,
-        $isSensitive = 0
+        $reporter_approved = null
     ) {
 
         $category = $this->getCategoryById(
@@ -262,7 +262,7 @@ class IncidentModel
                     description,
                     priority,
                     status,
-                    is_sensitive
+                    reporter_approved
                 )
                 VALUES (?, ?, ?, NULL, ?, ?, ?, ?, ?, ?)";
 
@@ -285,7 +285,7 @@ class IncidentModel
             $description,
             $priority,
             $status,
-            $isSensitive
+            $reporterApproved
         );
 
         if (!$stmt->execute()) {
@@ -369,6 +369,7 @@ class IncidentModel
                     i.description,
                     i.priority,
                     i.status,
+                    i.reporter_approved,
                     i.submitted_at,
                     i.resolved_at,
                     c.category_name,
@@ -414,6 +415,9 @@ class IncidentModel
     }
 
 
+
+
+
     /* =========================================================
        ADMIN
        ========================================================= */
@@ -436,7 +440,7 @@ class IncidentModel
                 i.escalation_status,
                 i.escalation_reason,
 
-                i.is_sensitive,
+                i.reporter_approved,
                 i.submitted_at,
                 i.resolved_at,
                 i.updated_at,
@@ -515,7 +519,7 @@ class IncidentModel
                     i.status,
                     i.escalation_status,
                     i.escalation_reason,
-                    i.is_sensitive,
+                    i.reporter_approved,
                     i.submitted_at,
                     i.resolved_at,
                     c.category_name,
@@ -589,7 +593,7 @@ class IncidentModel
                     i.description,
                     i.priority,
                     i.status,
-                    i.is_sensitive,
+                    i.reporter_approved,
                     i.submitted_at,
                     i.resolved_at,
 
@@ -837,7 +841,7 @@ class IncidentModel
         $staffId,
         $assignedBy,
         $assignmentType = 'Manual',
-        $remarks = null
+        
     ) {
 
         $incident = $this->getIncidentById(
@@ -930,13 +934,7 @@ class IncidentModel
 
             $stmt->close();
 
-            /*
-             * NOTE:
-             * Your current incident_assignments table schema
-             * does not include a remarks column.
-             *
-             * Therefore remarks is not inserted here.
-             */
+
 
             $sql = "INSERT INTO incident_assignments (
                         incident_id,
@@ -1197,46 +1195,52 @@ class IncidentModel
        RESPONSE STAFF - INCIDENT UPDATES
        ========================================================= */
 
-    public function getIncidentUpdates($incidentId)
-    {
-        $sql = "SELECT
-                    iu.update_id,
-                    iu.user_id,
-                    iu.status,
-                    iu.update_message,
-                    iu.created_at,
-                    u.full_name
-                FROM incident_updates iu
 
-                INNER JOIN users u
-                    ON iu.user_id = u.user_id
+/* =========================================================
+   RESPONSE STAFF - INCIDENT UPDATES
+   ========================================================= */
 
-                WHERE iu.incident_id = ?
+public function getIncidentUpdates($incidentId)
+{
+    $sql = "SELECT
+                iu.update_id,
+                iu.user_id,
+                iu.status,
+                iu.update_message,
+                iu.created_at,
+                u.full_name,
+                u.role
+            FROM incident_updates iu
 
-                ORDER BY iu.created_at ASC";
+            INNER JOIN users u
+                ON iu.user_id = u.user_id
 
-        $stmt = $this->conn->prepare($sql);
+            WHERE iu.incident_id = ?
 
-        if (!$stmt) {
-            return [];
-        }
+            ORDER BY iu.created_at ASC, iu.update_id ASC";
 
-        $stmt->bind_param(
-            "i",
-            $incidentId
-        );
+    $stmt = $this->conn->prepare($sql);
 
-        $stmt->execute();
-
-        $result = $stmt->get_result();
-
-        $updates =
-            $result->fetch_all(MYSQLI_ASSOC);
-
-        $stmt->close();
-
-        return $updates;
+    if (!$stmt) {
+        return [];
     }
+
+    $stmt->bind_param(
+        "i",
+        $incidentId
+    );
+
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+    $updates = $result->fetch_all(MYSQLI_ASSOC);
+
+    $stmt->close();
+
+    return $updates;
+}
+
 
 
     /* =========================================================
@@ -1558,6 +1562,92 @@ class IncidentModel
                 throw new Exception(
                     'Failed to create escalation history.'
                 );
+            }
+
+            $stmt->close();
+
+            $this->conn->commit();
+
+            return true;
+
+        } catch (Exception $e) {
+
+            $this->conn->rollback();
+
+            return false;
+        }
+    }
+
+    /* =========================================================
+    ADMIN - REVIEW ESCALATION
+    ========================================================= */
+
+    public function reviewIncidentEscalation(
+        $incidentId,
+        $adminId
+    ) {
+
+        $stmt = $this->conn->prepare("
+            SELECT status
+            FROM incidents
+            WHERE incident_id = ?
+            AND escalation_status = 'Raised'
+            LIMIT 1
+        ");
+
+        if (!$stmt) return false;
+
+        $stmt->bind_param("i", $incidentId);
+        $stmt->execute();
+
+        $incident = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (!$incident) return false;
+
+        $this->conn->begin_transaction();
+
+        try {
+
+            $stmt = $this->conn->prepare("
+                UPDATE incidents
+                SET escalation_status = 'Reviewed'
+                WHERE incident_id = ?
+                AND escalation_status = 'Raised'
+            ");
+
+            $stmt->bind_param("i", $incidentId);
+
+            if (!$stmt->execute() || $stmt->affected_rows !== 1) {
+                throw new Exception("Failed to review escalation.");
+            }
+
+            $stmt->close();
+
+            $message = "Admin reviewed the escalation.";
+
+            $stmt = $this->conn->prepare("
+                INSERT INTO incident_updates
+                (
+                    incident_id,
+                    user_id,
+                    status,
+                    update_message,
+                    created_at
+                )
+                VALUES (?, ?, ?, ?, NOW())
+            ");
+
+            $stmt->bind_param(
+                "iiss",
+                $incidentId,
+                $adminId,
+                $incident['status'],
+                $message
+            );
+
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to record review history.");
             }
 
             $stmt->close();

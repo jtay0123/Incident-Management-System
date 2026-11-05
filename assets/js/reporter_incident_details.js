@@ -288,6 +288,194 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
 
         `;
+        renderReporterApproval(incident);
+
+    }
+
+    // =====================================================
+// REPORTER RESOLUTION APPROVAL
+// =====================================================
+
+function renderReporterApproval(incident) {
+
+    const container = document.getElementById(
+        "incidentInformation"
+    );
+
+    if (!container) {
+        return;
+    }
+
+    // Show approval buttons only for unresolved approval.
+    if (
+        incident.status !== "Resolved" ||
+        Number(incident.reporter_approved) !== 0
+    ) {
+        return;
+    }
+
+    container.innerHTML += `
+
+        <div class="mt-4 p-3 border rounded">
+
+            <h6 class="fw-bold">
+                Resolution Review
+            </h6>
+
+            <p class="text-muted">
+                Response Staff has marked this incident as resolved.
+                Please confirm whether the issue has been fixed.
+            </p>
+
+            <button
+                type="button"
+                class="btn btn-success me-2"
+                id="confirmResolvedBtn"
+            >
+                Confirm Resolved
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-outline-danger"
+                id="notFixedBtn"
+            >
+                Not Fixed
+            </button>
+
+        </div>
+
+    `;
+
+    document.getElementById("confirmResolvedBtn")
+        .addEventListener("click", function () {
+
+            submitReporterDecision("approve");
+
+        });
+
+    document.getElementById("notFixedBtn")
+        .addEventListener("click", function () {
+
+            submitReporterDecision("reject");
+
+        });
+
+}
+
+
+    // =====================================================
+    // SUBMIT REPORTER DECISION
+    // =====================================================
+
+    async function submitReporterDecision(decision) {
+
+        let message = "";
+
+        if (decision === "approve") {
+
+            if (!confirm(
+                "Are you sure the incident has been fixed?"
+            )) {
+                return;
+            }
+
+        } else {
+
+            message = prompt(
+                "Please explain why the incident is not fixed:"
+            );
+
+            if (message === null) {
+                return;
+            }
+
+            message = message.trim();
+
+            if (!message) {
+
+                alert(
+                    "Please provide a reason why the incident is not fixed."
+                );
+
+                return;
+            }
+
+        }
+
+        const approveButton = document.getElementById(
+            "confirmResolvedBtn"
+        );
+
+        const rejectButton = document.getElementById(
+            "notFixedBtn"
+        );
+
+        if (approveButton) approveButton.disabled = true;
+        if (rejectButton) rejectButton.disabled = true;
+
+        try {
+
+            const formData = new FormData();
+
+            formData.append("incident_id", incidentId);
+            formData.append("decision", decision);
+            formData.append("message", message);
+
+            const response = await fetch(
+                `${window.BASE_URL}/app/controller/IncidentController.php?action=reporter_approve_incident`,
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+            const responseText = await response.text();
+
+            console.log("HTTP Status:", response.status);
+            console.log("Server Response:", responseText);
+
+            let data;
+
+            try {
+                data = JSON.parse(responseText);
+            } catch (error) {
+                console.error("Invalid JSON response:", error);
+                throw new Error("PHP did not return valid JSON. Check the console.");
+            }
+
+            if (!data.success) {
+
+                alert(
+                    data.message || "Unable to submit your decision."
+                );
+
+                if (approveButton) approveButton.disabled = false;
+                if (rejectButton) rejectButton.disabled = false;
+
+                return;
+            }
+
+            alert(data.message);
+
+            // Refresh incident information and update history.
+            await loadIncidentDetails();
+
+        } catch (error) {
+
+            console.error(
+                "Error submitting Reporter decision:",
+                error
+            );
+
+            alert(
+                "Unable to submit your decision. Please try again."
+            );
+
+            if (approveButton) approveButton.disabled = false;
+            if (rejectButton) rejectButton.disabled = false;
+
+        }
 
     }
 

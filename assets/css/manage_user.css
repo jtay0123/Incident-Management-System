@@ -1,0 +1,115 @@
+/* CUSTOM STYLES ONLY - Bootstrap handles layout! */
+
+/* Exact spacing & colors to match your image */
+#manage-users {
+    padding: 2rem;
+    background: #f8f9fa;
+}
+
+/* Status Badges (Custom - EXACT colors from image) */
+.status-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 25px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+    min-width: 75px;
+    text-align: center;
+    border: 1px solid;
+}
+
+/* EXACT COLORS FROM YOUR IMAGE */
+.status-active { 
+    background: #d4edda; 
+    color: #155724; 
+    border-color: #c3e6cb;
+}
+
+.status-inactive { 
+    background: #f8d7da; 
+    color: #721c24; 
+    border-color: #f5c6cb;
+}
+
+.status-banned { 
+    background: #f5c6cb; 
+    color: #721c24; 
+    border-color: #f5c6cb;
+}
+
+.status-pending { 
+    background: #fff3cd; 
+    color: #856404; 
+    border-color: #ffeaa7;
+}
+
+.status-suspended { 
+    background: #ffeaa7; 
+    color: #856404; 
+    border-color: #ffd767;
+}
+
+/* User Avatar (Custom size/position) */
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 12px;
+    vertical-align: middle;
+    border: 2px solid #e9ecef;
+}
+
+/* Action Buttons (Custom hover) */
+.action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 2px;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.action-view { color: #0d6efd; background: #e3f2fd; }
+.action-delete { color: #dc3545; background: #fdf2f2; }
+
+/* Search Input Enhancement */
+#searchInput {
+    border-left: none !important;
+    font-size: 0.95rem;
+}
+
+/* Table Header Enhancement */
+#usersTable thead th {
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+    padding: 1.25rem 0.75rem;
+}
+
+/* Table Row Hover */
+#usersTable tbody tr:hover {
+    background-color: #f8f9fa !important;
+}
+
+/* Pagination Enhancement */
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+    #manage-users { padding: 1rem; }
+    .action-btn { width: 28px; height: 28px; }
+    .user-avatar { width: 32px; height: 32px; margin-right: 8px; }
+}

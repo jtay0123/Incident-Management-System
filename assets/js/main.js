@@ -16,8 +16,8 @@ document.addEventListener('DOMContentLoaded', function () {
     'Super Admin': 'manage_accounts',
     'Admin': 'manage_users',
     'Response Staff': 'my_incidents',
-    'Reporter': 'my_reports'
-
+    'Reporter': 'my_reports',
+    
     };
 
     const activePage = currentPage || roleDefaults[userRole];

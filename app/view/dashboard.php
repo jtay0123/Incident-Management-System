@@ -22,8 +22,8 @@ $roleFolders = [
     'Super Admin'    => 'superadmin',
     'Admin'          => 'admin',
     'Response Staff' => 'response_staff',
-    'Reporter'       => 'reporter',
-    'Security'       => 'security'
+    'Reporter'       => 'reporter'
+   
 ];
 
 
@@ -43,8 +43,8 @@ $defaultPages = [
     'Super Admin'    => 'manage_accounts',
     'Admin'          => 'admin_incidents',
     'Response Staff' => 'my_incidents',
-    'Reporter'       => 'reporter_my_reports',
-    'Security'       => 'sensitive_incidents'
+    'Reporter'       => 'reporter_my_reports'
+    
 ];
 
 
@@ -76,9 +76,7 @@ $validPages = [
         'reporter_incident_details'
     ],
 
-    'Security' => [
-        'sensitive_incidents'
-    ]
+
 ];
 
 
@@ -451,23 +449,8 @@ if (!file_exists($contentFile)) {
                     break;
 
 
-                // =========================
-                // SECURITY
-                // =========================
 
-                case 'Security':
-
-            ?>
-
-                    <a class="tab <?php echo ($page === 'sensitive_incidents') ? 'active' : ''; ?>"
-                        href="dashboard.php?page=sensitive_incidents">
-
-                        Sensitive Incidents
-
-                    </a>
-
-            <?php
-                    break;
+                
 
             }
 
@@ -679,7 +662,7 @@ if (!file_exists($contentFile)) {
 
         'report_incident' => ['report_incident.js'],
 
-        'sensitive_incidents' => []
+        
 
     ];
 

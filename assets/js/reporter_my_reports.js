@@ -56,6 +56,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 ? data.incidents
                 : [];
 
+            // Show incidents waiting for Reporter approval.
+            updateResolutionApprovalAlert(allReports);
 
             updateStatistics();
 
@@ -317,6 +319,89 @@ document.addEventListener("DOMContentLoaded", () => {
             reportTableBody.appendChild(row);
 
         });
+
+    }
+
+
+        // =====================================================
+    // PENDING RESOLUTION APPROVAL ALERT
+    // =====================================================
+
+    function updateResolutionApprovalAlert(incidents) {
+
+        console.log(
+            "Resolution approval alert function called:",
+            incidents.length
+        );
+
+        const alertSection = document.getElementById(
+            "resolutionApprovalAlertSection"
+        );
+
+        const alertMessage = document.getElementById(
+            "resolutionApprovalAlertMessage"
+        );
+
+        const alertList = document.getElementById(
+            "resolutionApprovalAlertList"
+        );
+
+        if (!alertSection || !alertMessage || !alertList) {
+            return;
+        }
+
+        // Only include incidents waiting for Reporter approval.
+        const pendingCases = incidents.filter(function (incident) {
+
+            return (
+                String(incident.status ?? "").trim() === "Resolved" &&
+                Number(incident.reporter_approved) === 0
+            );
+
+        });
+
+        console.table(incidents.map(incident => ({
+            id: incident.incident_id,
+            status: incident.status,
+            reporter_approved: incident.reporter_approved
+        })));
+
+        // Clear previous alerts.
+        alertList.replaceChildren();
+
+        if (pendingCases.length === 0) {
+
+            alertSection.style.display = "none";
+            return;
+
+        }
+
+        // Display notification.
+        alertSection.style.display = "block";
+
+        alertMessage.textContent =
+            pendingCases.length +
+            " incident(s) have been resolved and require your confirmation.";
+
+        pendingCases.forEach(function (incident) {
+
+        const item = document.createElement("li");
+
+        const link = document.createElement("a");
+
+        link.href =
+            `${window.BASE_URL}/app/view/dashboard.php?page=reporter_incident_details&id=${encodeURIComponent(incident.incident_id)}`;
+
+        link.textContent =
+            `#${incident.incident_id} - ${incident.title || "Untitled incident"}`;
+
+        link.className = "alert-link text-decoration-underline";
+
+        item.appendChild(link);
+
+        alertList.appendChild(item);
+
+    });
 
     }
 

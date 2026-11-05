@@ -446,66 +446,146 @@ document.addEventListener('DOMContentLoaded', function () {
     );
 
 
-    // ==========================================
-    // IMAGE PREVIEW
-    // ==========================================
-    incidentImage.addEventListener('change', function () {
+// ==========================================
+// IMAGE PREVIEW - ALLOW MULTIPLE SELECTIONS
+// ==========================================
 
-        const file = incidentImage.files[0];
+let selectedImages = [];
 
-        if (!file) {
+incidentImage.addEventListener('change', function () {
 
-            imagePreviewContainer.classList.add('d-none');
-            imagePreview.src = '';
+    const newFiles = Array.from(incidentImage.files);
 
-            return;
-        }
+    if (newFiles.length === 0) {
+        return;
+    }
 
-        const allowedTypes = [
-            'image/jpeg',
-            'image/png',
-            'image/jpg'
-        ];
+    const allowedTypes = [
+        'image/jpeg',
+        'image/png'
+    ];
+
+    // Validate new images
+    for (const file of newFiles) {
 
         if (!allowedTypes.includes(file.type)) {
 
             showMessage(
                 'danger',
-                'Please upload a JPG, JPEG or PNG image.'
+                'Please upload JPG or PNG images only.'
             );
 
             incidentImage.value = '';
-
-            imagePreviewContainer.classList.add('d-none');
-
             return;
         }
+
+        if (file.size > 5 * 1024 * 1024) {
+
+            showMessage(
+                'danger',
+                'Each image must not exceed 5 MB.'
+            );
+
+            incidentImage.value = '';
+            return;
+        }
+    }
+
+    // Check maximum 5 images
+    if (selectedImages.length + newFiles.length > 5) {
+
+        showMessage(
+            'danger',
+            'You can upload a maximum of 5 images.'
+        );
+
+        incidentImage.value = '';
+        return;
+    }
+
+    // Add new images without removing previous selections
+    selectedImages = selectedImages.concat(newFiles);
+
+    // Update input files using DataTransfer
+    const dataTransfer = new DataTransfer();
+
+    selectedImages.forEach(function (file) {
+        dataTransfer.items.add(file);
+    });
+
+    incidentImage.files = dataTransfer.files;
+
+    // Refresh preview
+    renderImagePreview();
+
+});
+
+
+// ==========================================
+// RENDER IMAGE PREVIEW
+// ==========================================
+
+function renderImagePreview() {
+
+    imagePreview.innerHTML = '';
+
+    if (selectedImages.length === 0) {
+
+        imagePreviewContainer.classList.add('d-none');
+        return;
+    }
+
+    selectedImages.forEach(function (file) {
 
         const reader = new FileReader();
 
         reader.onload = function (event) {
 
-            imagePreview.src = event.target.result;
+            const previewItem = document.createElement('div');
 
-            imagePreviewContainer.classList.remove('d-none');
+            previewItem.className = 'border rounded p-2';
+
+            const img = document.createElement('img');
+
+            img.src = event.target.result;
+            img.style.width = '150px';
+            img.style.height = '120px';
+            img.style.objectFit = 'contain';
+
+            const fileName = document.createElement('div');
+
+            fileName.className = 'small text-muted mt-1';
+            fileName.textContent = file.name;
+
+            previewItem.appendChild(img);
+            previewItem.appendChild(fileName);
+
+            imagePreview.appendChild(previewItem);
         };
 
         reader.readAsDataURL(file);
+
     });
 
+    imagePreviewContainer.classList.remove('d-none');
+}
 
-    // ==========================================
-    // REMOVE IMAGE
-    // ==========================================
-    removeImageBtn.addEventListener('click', function () {
 
-        incidentImage.value = '';
+// ==========================================
+// REMOVE ALL IMAGES
+// ==========================================
 
-        imagePreview.src = '';
+removeImageBtn.addEventListener('click', function () {
 
-        imagePreviewContainer.classList.add('d-none');
-    });
+    selectedImages = [];
 
+    incidentImage.value = '';
+
+    imagePreview.innerHTML = '';
+
+    imagePreviewContainer.classList.add('d-none');
+
+});
 
     // ==========================================
     // SHOW FORM MESSAGE

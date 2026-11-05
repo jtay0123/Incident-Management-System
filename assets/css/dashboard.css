@@ -1,0 +1,133 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+    font: 'Montserrat', sans-serif;
+}
+
+/* navigation bar */
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+    background-color: #f8f9fa;
+    box-shadow: 1px 1px 1px 1px rgba(0,0,0,0.1);
+    margin-bottom: 15px;
+}
+
+.tab-container {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    margin: 0 auto;
+    max-width: 1200px;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    padding: 1rem;
+    color: #737373;
+    text-decoration: none;
+    text-align: center;
+    font-weight: 500;
+    position: relative;
+    cursor: pointer;
+}
+
+.tab:hover {
+    color: #262626;
+    background-color: #eeeeee;
+    text-decoration: none;
+}
+
+.tab.active {
+    color: #262626;
+}
+
+.tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #33b4ff;
+}
+
+.profile-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1rem;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+}
+
+.profile-container i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.profile-container:hover {
+    background-color: #eeeeee;
+}
+
+/* navigation end */
+
+/* tab content */
+.content-container {
+    margin: 0 2rem;
+}
+
+.create-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 200px;
+    padding: 0.5rem;
+}
+
+.create-button i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+/* tab content end */
+
+.table {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.table th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.create-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+}
+
+.modal-content {
+    border-radius: 8px;
+}
+
+.modal-header {
+    background-color: #f8f9fa;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}

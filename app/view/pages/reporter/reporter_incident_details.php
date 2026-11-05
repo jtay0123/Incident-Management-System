@@ -136,6 +136,60 @@
 
     </div>
 
+    <!-- ============================= -->
+<!-- REPORTER RESOLUTION REVIEW -->
+<!-- ============================= -->
+
+<div class="card shadow-sm border-0 mb-4" id="reporterReviewCard" style="display: none;">
+
+    <div class="card-header bg-white">
+        <h5 class="mb-0">
+            <i class="bi bi-check-circle me-1"></i>
+            Review Incident Resolution
+        </h5>
+    </div>
+
+    <div class="card-body">
+
+        <p>
+            Please review the completion proof and confirm
+            whether the reported issue has been fixed.
+        </p>
+
+        <div class="mb-3">
+            <label for="reporterFeedback" class="form-label">
+                Reason (required if the issue is not fixed)
+            </label>
+
+            <textarea
+                id="reporterFeedback"
+                class="form-control"
+                rows="3"
+                placeholder="Describe what is still not fixed..."
+            ></textarea>
+        </div>
+
+        <button
+            type="button"
+            id="confirmFixedBtn"
+            class="btn btn-success me-2"
+        >
+            <i class="bi bi-check-lg me-1"></i>
+            Confirm Fixed
+        </button>
+
+        <button
+            type="button"
+            id="notFixedBtn"
+            class="btn btn-outline-danger"
+        >
+            <i class="bi bi-exclamation-circle me-1"></i>
+            Not Fixed
+        </button>
+
+    </div>
+
+</div>
 
     <!-- ============================= -->
     <!-- INCIDENT UPDATE HISTORY -->

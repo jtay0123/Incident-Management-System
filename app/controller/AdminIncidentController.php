@@ -990,14 +990,27 @@ class AdminIncidentController
     }
 
 
-    //rework
-    
-public function returnIncidentToProgress()
-{
-    $this->requireAdmin();
+// =====================================================
+// REVIEW ESCALATION
+// =====================================================
 
-    $incidentId = (int) ($_POST['incident_id'] ?? 0);
-    $adminId = (int) $_SESSION['user_id'];
+public function reviewEscalation()
+{
+    header('Content-Type: application/json');
+
+    if (
+        !isset($_SESSION['user_id']) ||
+        ($_SESSION['user_role'] ?? '') !== 'Admin'
+    ) {
+        $this->jsonResponse([
+            'success' => false,
+            'message' => 'Unauthorized access.'
+        ]);
+        return;
+    }
+
+    $incidentId = (int)($_POST['incident_id'] ?? 0);
+    $adminId = (int)$_SESSION['user_id'];
 
     if ($incidentId <= 0) {
         $this->jsonResponse([
@@ -1007,88 +1020,43 @@ public function returnIncidentToProgress()
         return;
     }
 
-    $incident = $this->incidentModel->getIncidentById($incidentId);
+    $result = $this->incidentModel->reviewIncidentEscalation(
+        $incidentId,
+        $adminId
+    );
 
-    if (!$incident || $incident['status'] !== 'Resolved') {
+    if (!$result) {
         $this->jsonResponse([
             'success' => false,
-            'message' => 'Only resolved incidents can be returned to In Progress.'
+            'message' => 'Unable to review escalation. It may have already been reviewed.'
         ]);
         return;
     }
 
-    $this->conn->begin_transaction();
-
-    try {
-        $status = 'In Progress';
-        $message = 'Admin returned the incident to In Progress after reviewing the Reporter feedback.';
-
-        $sql = "
-            UPDATE incidents
-            SET status = ?
-            WHERE incident_id = ?
-              AND status = 'Resolved'
-        ";
-
-        $stmt = $this->conn->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception('Failed to prepare incident update.');
-        }
-
-        $stmt->bind_param('si', $status, $incidentId);
-
-        if (!$stmt->execute() || $stmt->affected_rows !== 1) {
-            $stmt->close();
-            throw new Exception('Incident status was not changed.');
-        }
-
-        $stmt->close();
-
-        $sql = "
-            INSERT INTO incident_updates
-            (incident_id, user_id, status, update_message)
-            VALUES (?, ?, ?, ?)
-        ";
-
-        $stmt = $this->conn->prepare($sql);
-
-        if (!$stmt) {
-            throw new Exception('Failed to prepare update history.');
-        }
-
-        $stmt->bind_param(
-            'iiss',
-            $incidentId,
-            $adminId,
-            $status,
-            $message
-        );
-
-        if (!$stmt->execute()) {
-            $stmt->close();
-            throw new Exception('Failed to record incident history.');
-        }
-
-        $stmt->close();
-
-        $this->conn->commit();
-
-        $this->jsonResponse([
-            'success' => true,
-            'message' => 'Incident returned to In Progress successfully.'
-        ]);
-
-    } catch (Exception $e) {
-        $this->conn->rollback();
-
-        $this->jsonResponse([
-            'success' => false,
-            'message' => $e->getMessage()
-        ]);
-    }
+    $this->jsonResponse([
+        'success' => true,
+        'message' => 'Escalation marked as reviewed successfully.'
+    ]);
 }
 
+    // =====================================================
+    // JSON RESPONSE
+    // =====================================================
+
+    private function jsonResponse(
+        $data
+    ) {
+
+        header(
+            'Content-Type: application/json; charset=utf-8'
+        );
+
+
+        echo json_encode(
+            $data,
+            JSON_UNESCAPED_UNICODE
+        );
+    }
 
 
     // =====================================================
@@ -1297,26 +1265,6 @@ public function returnIncidentToProgress()
 
 
     // =====================================================
-    // JSON RESPONSE
-    // =====================================================
-
-    private function jsonResponse(
-        $data
-    ) {
-
-        header(
-            'Content-Type: application/json; charset=utf-8'
-        );
-
-
-        echo json_encode(
-            $data,
-            JSON_UNESCAPED_UNICODE
-        );
-    }
-
-
-    // =====================================================
     // HANDLE REQUEST
     // =====================================================
 
@@ -1355,6 +1303,12 @@ public function returnIncidentToProgress()
                 $this->reassignIncident();
 
                 break;
+
+            case 'review_escalation':
+
+            $this->reviewEscalation();
+
+            break;
 
             
             case 'update_priority':

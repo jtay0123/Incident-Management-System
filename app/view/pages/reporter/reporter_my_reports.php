@@ -130,6 +130,25 @@
 
     </div>
 
+        <!-- PENDING RESOLUTION APPROVAL ALERT -->
+    <div
+        id="resolutionApprovalAlertSection"
+        class="alert alert-warning"
+        style="display: none;"
+    >
+        <h6 class="fw-bold">
+            <i class="bi bi-exclamation-circle me-2"></i>
+            Pending Resolution Approval
+        </h6>
+
+        <p id="resolutionApprovalAlertMessage" class="mb-2"></p>
+
+        <ul
+            id="resolutionApprovalAlertList"
+            class="mb-0"
+        ></ul>
+    </div>
+
 
     <!-- ============================= -->
     <!-- SEARCH AND FILTER -->

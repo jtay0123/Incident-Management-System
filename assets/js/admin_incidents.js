@@ -42,6 +42,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Update overdue notification separately.
             updateOverdueAlert(incidents);
+            updateRaisedToAdminAlert(incidents);
+            updatePendingClosureAlert(incidents);
 
             populateDepartmentFilter(incidents);
 
@@ -331,6 +333,8 @@ document.addEventListener("DOMContentLoaded", function () {
         renderIncidentTable(filteredIncidents);
 
     }
+
+
 
 
     // =====================================================
@@ -686,24 +690,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
         overdueCases.forEach(function (incident) {
 
-            const item = document.createElement("li");
+    const item = document.createElement("li");
 
-            const incidentId =
-                incident.incident_id ?? "N/A";
+        const link = document.createElement("a");
 
-            const incidentTitle =
-                incident.title ?? "Untitled incident";
+        link.href =
+            `${window.BASE_URL}/app/view/dashboard.php?page=admin_incident_details&id=${encodeURIComponent(incident.incident_id)}`;
 
+        link.textContent =
+            `#${incident.incident_id} - ${incident.title || "Untitled incident"}`;
 
-            // Display incident details as text, not HTML.
-            item.textContent =
-                String(incidentId) +
-                " - " +
-                String(incidentTitle);
+        link.className = "alert-link text-decoration-underline";
 
-            alertList.appendChild(item);
+        item.appendChild(link);
 
-        });
+        alertList.appendChild(item);
+
+    });
 
     }
 
@@ -733,6 +736,146 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
         });
+
+    // =====================================================
+// INCIDENTS RAISED TO ADMIN ALERT
+// =====================================================
+
+function updateRaisedToAdminAlert(incidents) {
+
+    console.log(
+        "Raised to Admin alert function called:",
+        incidents.length
+    );
+
+    const alertSection = document.getElementById(
+        "raisedToAdminAlertSection"
+    );
+
+    const alertMessage = document.getElementById(
+        "raisedToAdminAlertMessage"
+    );
+
+    const alertList = document.getElementById(
+        "raisedToAdminAlertList"
+    );
+
+    if (!alertSection || !alertMessage || !alertList) {
+        return;
+    }
+
+    // Only include incidents raised to Admin.
+    const raisedCases = incidents.filter(function (incident) {
+
+        return (
+            String(incident.escalation_status ?? "").trim() === "Raised"
+        );
+
+    });
+
+    alertList.replaceChildren();
+
+    if (raisedCases.length === 0) {
+
+        alertSection.style.display = "none";
+        return;
+
+    }
+
+    alertSection.style.display = "block";
+
+    alertMessage.textContent =
+        raisedCases.length +
+        " incident(s) have been raised by Response Staff and require your attention.";
+
+    raisedCases.forEach(function (incident) {
+
+        const item = document.createElement("li");
+        const link = document.createElement("a");
+
+        link.href =
+            `${window.BASE_URL}/app/view/dashboard.php?page=admin_incident_details&id=${encodeURIComponent(incident.incident_id)}`;
+
+        link.textContent =
+            `#${incident.incident_id} - ${incident.title || "Untitled incident"}`;
+
+        link.className = "alert-link text-decoration-underline";
+
+        item.appendChild(link);
+        alertList.appendChild(item);
+
+    });
+
+}
+
+    // =====================================================
+    // PENDING INCIDENT CLOSURE ALERT
+    // =====================================================
+
+    function updatePendingClosureAlert(incidents) {
+
+        console.log("Pending closure alert function called:", incidents.length);
+
+        const alertSection = document.getElementById(
+            "pendingClosureAlertSection"
+        );
+
+        const alertMessage = document.getElementById(
+            "pendingClosureAlertMessage"
+        );
+
+        const alertList = document.getElementById(
+            "pendingClosureAlertList"
+        );
+
+        if (!alertSection || !alertMessage || !alertList) {
+            return;
+        }
+
+        // Only include resolved incidents approved by the Reporter.
+        const pendingCases = incidents.filter(function (incident) {
+
+            return (
+                String(incident.status ?? "").trim() === "Resolved" &&
+                Number(incident.reporter_approved) === 1
+            );
+
+        });
+
+        alertList.replaceChildren();
+
+        if (pendingCases.length === 0) {
+
+            alertSection.style.display = "none";
+            return;
+
+        }
+
+        alertSection.style.display = "block";
+
+        alertMessage.textContent =
+            pendingCases.length +
+            " incident(s) have been approved by Reporters and are ready for closure.";
+
+        pendingCases.forEach(function (incident) {
+
+            const item = document.createElement("li");
+            const link = document.createElement("a");
+
+            link.href =
+                `${window.BASE_URL}/app/view/dashboard.php?page=admin_incident_details&id=${encodeURIComponent(incident.incident_id)}`;
+
+            link.textContent =
+                `#${incident.incident_id} - ${incident.title || "Untitled incident"}`;
+
+            link.className = "alert-link text-decoration-underline";
+
+            item.appendChild(link);
+            alertList.appendChild(item);
+
+        });
+
+    }
 
 
     // =====================================================

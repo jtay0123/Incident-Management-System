@@ -1,0 +1,355 @@
+
+<div class="container-fluid">
+
+    <!-- ============================= -->
+    <!-- PAGE HEADER -->
+    <!-- ============================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2>My Incidents</h2>
+
+            <p class="text-muted mb-0">
+            <!--    View and manage the campus incidents assigned to you.-->
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================= -->
+    <!-- STATISTICS -->
+    <!-- ============================= -->
+
+    <div class="row mb-4">
+
+        <!-- Total Incidents -->
+
+        <div class="col-lg-3 col-md-6 mb-3">
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    <i class="bi bi-clipboard-data-fill"></i>
+                </div>
+
+                <p class="stat-label">
+                    Total Incidents
+                </p>
+
+                <div
+                    class="stat-value"
+                    id="totalIncidents"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Unresolved Incidents -->
+
+        <div class="col-lg-3 col-md-6 mb-3">
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+
+                <p class="stat-label">
+                    Unresolved Incidents
+                </p>
+
+                <div
+                    class="stat-value"
+                    id="unresolvedIncidents"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Resolved Incidents -->
+
+        <div class="col-lg-3 col-md-6 mb-3">
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+
+                <p class="stat-label">
+                    Resolved Incidents
+                </p>
+
+                <div
+                    class="stat-value"
+                    id="resolvedIncidents"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Overdue Incidents -->
+
+        <div class="col-lg-3 col-md-6 mb-3">
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                </div>
+
+                <p class="stat-label">
+                    Overdue Incidents
+                </p>
+
+                <div
+                    class="stat-value"
+                    id="overdueIncidents"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================= -->
+    <!-- SEARCH AND FILTER -->
+    <!-- ============================= -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-body">
+
+            <div class="row align-items-center">
+
+                <!-- Search -->
+
+                <div class="col-lg-5 col-md-6 mb-3 mb-lg-0">
+
+                    <div class="input-group">
+
+                        <span class="input-group-text bg-white">
+
+                            <i class="bi bi-search text-muted"></i>
+
+                        </span>
+
+                        <input
+                            type="text"
+                            id="searchInput"
+                            class="form-control"
+                            placeholder="Search incident by title or ID"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- Status Filter -->
+
+                <div class="col-lg-2 col-md-3 mb-3 mb-lg-0">
+
+                    <select
+                        id="filter-status"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            All Status
+                        </option>
+
+                        <option value="Assigned">
+                            Assigned
+                        </option>
+
+                        <option value="In Progress">
+                            In Progress
+                        </option>
+
+                        <option value="Resolved">
+                            Resolved
+                        </option>
+
+                        <option value="Closed">
+                            Closed
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- Priority Filter -->
+
+                <div class="col-lg-2 col-md-3 mb-3 mb-lg-0">
+
+                    <select
+                        id="filter-priority"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            All Priority
+                        </option>
+
+                        <option value="Low">
+                            Low
+                        </option>
+
+                        <option value="Medium">
+                            Medium
+                        </option>
+
+                        <option value="High">
+                            High
+                        </option>
+
+                        <option value="Emergency">
+                            Emergency
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- Category Filter -->
+
+                <div class="col-lg-3 col-md-3">
+
+                    <select
+                        id="filter-category"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            All Categories
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================= -->
+    <!-- INCIDENT TABLE -->
+    <!-- ============================= -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white">
+
+            <h5 class="mb-0">
+
+                <i class="bi bi-clipboard-data me-1"></i>
+
+                My Assigned Incidents
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body">
+
+
+
+
+            <div class="table-responsive">
+
+                <table
+                    class="table table-hover align-middle mb-0"
+                    id="incidentTable"
+                >
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>ID</th>
+
+                            <th>Title</th>
+
+                            <th>Category</th>
+
+                            <th>Location</th>
+
+                            <th>Priority</th>
+
+                            <th>Status</th>
+
+                            <th>Submitted</th>
+
+                            <th class="text-center">
+                                Actions
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="incidentTableBody">
+
+                        <tr>
+
+                            <td
+                                colspan="8"
+                                class="text-center py-4 text-muted"
+                            >
+
+                                Loading your assigned incidents...
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================= -->
+<!-- BASE URL -->
+<!-- ============================= -->
+
+<script>
+
+    window.BASE_URL = "<?= BASE_URL ?>";
+
+</script>
